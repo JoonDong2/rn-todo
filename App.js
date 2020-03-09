@@ -51,7 +51,18 @@ export default class App extends Component {
                         autoCorrect={false}
                         onSubmitEditing={this._addTodo}></TextInput>
                     <ScrollView contentContainerStyle={styles.toDos}>
-                        {Object.values(toDos).map(toDo => <ToDo key={toDo.id} {...toDo} />)}
+                        {Object
+                            .values(toDos)
+                            .sort((a, b) => {
+                                return a.createdAt > b.createdAt ? -1 : a.createdAt < b.createdAt ? 1 : 0
+                            })
+                            .map(toDo => <ToDo
+                                key={toDo.id}
+                                {...toDo}
+                                deleteToDo={this._deleteToDo}
+                                completeToDo={this._completeToDo}
+                                uncompleteToDo={this._uncompleteToDo}
+                                updateToDo={this._updateToDo}/>)}
                     </ScrollView>
                 </View>
             </View>
@@ -67,7 +78,7 @@ export default class App extends Component {
     }
 
     _addTodo = () => {
-        const { newToDo } = this.state;
+        const {newToDo} = this.state;
 
         if (newToDo !== '') {
             this.setState(prevState => {
@@ -84,7 +95,7 @@ export default class App extends Component {
                     ...prevState,
                     newToDo: '',
                     toDos: {
-                        ...prevState.toDos, 
+                        ...prevState.toDos,
                         ...newToDoObject
                     }
                 };
@@ -93,6 +104,74 @@ export default class App extends Component {
                 };
             });
         }
+    }
+
+    _deleteToDo = (id) => {
+        this.setState(prevState => {
+            const toDos = prevState.toDos;
+            delete toDos[id];
+            const newState = {
+                ...prevState,
+                ...toDos
+            };
+            return {
+                ...newState
+            }
+        })
+    }
+
+    _uncompleteToDo = (id) => {
+        this.setState(prevState => {
+            const newState = {
+                ...prevState,
+                toDos: {
+                    ...prevState.toDos,
+                    [id]: {
+                        ...prevState.toDos[id],
+                        isCompleted: false
+                    }
+                }
+            };
+            return {
+                ...newState
+            };
+        })
+    }
+
+    _completeToDo = (id) => {
+        this.setState(prevState => {
+            const newState = {
+                ...prevState,
+                toDos: {
+                    ...prevState.toDos,
+                    [id]: {
+                        ...prevState.toDos[id],
+                        isCompleted: true
+                    }
+                }
+            };
+            return {
+                ...newState
+            };
+        })
+    }
+
+    _updateToDo = (id, text) => {
+        this.setState(prevState => {
+            const newState = {
+                ...prevState,
+                toDos: {
+                    ...prevState.toDos,
+                    [id]: {
+                        ...prevState.toDos[id],
+                        text: text
+                    }
+                }
+            };
+            return {
+                ...newState
+            };
+        })
     }
 
     _uuidv4 = () => {

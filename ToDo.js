@@ -14,9 +14,13 @@ const {width} = Dimensions.get("window");
 
 export default class ToDo extends Component {
     static propTypes = {
-        id: PropTypes.bool,
+        id:PropTypes.string.isRequired,
         text: PropTypes.string.isRequired,
         isCompleted: PropTypes.bool.isRequired,
+        deleteToDo: PropTypes.func.isRequired,
+        completeToDo: PropTypes.func.isRequired,
+        uncompleteToDo: PropTypes.func.isRequired,
+        updateToDo: PropTypes.func.isRequired,
     }
 
     constructor(props) {
@@ -24,13 +28,13 @@ export default class ToDo extends Component {
         this.state = {
             isEditing: false,
             isCompleted: false,
-            toDoValue: ""
+            toDoValue: props.text,
         }
     }
 
     render() {
-        const {isEditing, isCompleted, toDoValue} = this.state;
-        const {text} = this.props;
+        const {isEditing, toDoValue} = this.state;
+        const { text, isCompleted, id, deleteToDo } = this.props;
 
         return (
             <View style={styles.container}>
@@ -53,7 +57,8 @@ export default class ToDo extends Component {
                         ]}
                             value={toDoValue}
                             multiline={true}
-                            onChangeText={this._controlInput}></TextInput>
+                            onChangeText={this._controlInput}
+                            returnKeyType={"done"}></TextInput>
                     )
                     : (
                         <Text
@@ -81,7 +86,7 @@ export default class ToDo extends Component {
                                     <Text style={styles.actionsText}>✐</Text>
                                 </View>
                             </TouchableOpacity>
-                            <TouchableOpacity>
+                            <TouchableOpacity onPressOut={() => deleteToDo(id)}>
                                 <View style={styles.actionsContainer}>
                                     <Text style={styles.actionsText}>❌</Text>
                                 </View>
@@ -93,26 +98,34 @@ export default class ToDo extends Component {
     }
 
     _toggleComplete = () => {
-        this.setState(prevState => {
-            return ({
-                isCompleted: !prevState.isCompleted
-            });
-        });
+        const { isCompleted, completeToDo, uncompleteToDo, id } = this.props;
+
+        // 아직 변경 전임.
+        if(isCompleted) {
+            uncompleteToDo(id);
+        } else {
+            completeToDo(id);
+        }
     }
 
     _startEditing = () => {
-        const {text} = this.props;
-
-        this.setState({isEditing: true, toDoValue: text})
+        this.setState({isEditing: true})
     }
 
     _finishEditing = () => {
+        const { toDoValue } = this.state;
+        const { id, updateToDo } = this.props;
+
+        updateToDo(id, toDoValue);
+
         this.setState({isEditing: false})
     }
 
     _controlInput = text => {
         this.setState({toDoValue: text})
     }
+
+    
 }
 
 const styles = StyleSheet.create({
