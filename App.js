@@ -7,7 +7,8 @@ import {
     StatusBar,
     TextInput,
     Dimensions,
-    Platform
+    Platform,
+    AsyncStorage
 } from 'react-native';
 
 import {AppLoading} from 'expo';
@@ -53,9 +54,13 @@ export default class App extends Component {
                     <ScrollView contentContainerStyle={styles.toDos}>
                         {Object
                             .values(toDos)
-                            .sort((a, b) => {
-                                return a.createdAt > b.createdAt ? -1 : a.createdAt < b.createdAt ? 1 : 0
-                            })
+                            .sort((a, b) => 
+                                a.createdAt > b.createdAt
+                                    ? -1
+                                    : a.createdAt < b.createdAt
+                                        ? 1
+                                        : 0
+                            )
                             .map(toDo => <ToDo
                                 key={toDo.id}
                                 {...toDo}
@@ -73,8 +78,16 @@ export default class App extends Component {
         this.setState({newToDo: text})
     }
 
-    _loadToDos = () => {
-        this.setState({loadedTodos: true});
+    _loadToDos = async() => {
+        try {
+            const toDos = await AsyncStorage.getItem("toDos");
+            const parsedToDos = JSON.parse(toDos);
+            console.log(parsedToDos);
+            this.setState({loadedTodos: true, toDos: parsedToDos});
+        } catch (err) {
+            console.log(err);
+        }
+
     }
 
     _addTodo = () => {
@@ -99,6 +112,7 @@ export default class App extends Component {
                         ...newToDoObject
                     }
                 };
+                this._saveToDos(newState.toDos);
                 return {
                     ...newState
                 };
@@ -114,6 +128,7 @@ export default class App extends Component {
                 ...prevState,
                 ...toDos
             };
+            this._saveToDos(newState.toDos);
             return {
                 ...newState
             }
@@ -132,6 +147,7 @@ export default class App extends Component {
                     }
                 }
             };
+            this._saveToDos(newState.toDos);
             return {
                 ...newState
             };
@@ -150,6 +166,7 @@ export default class App extends Component {
                     }
                 }
             };
+            this._saveToDos(newState.toDos);
             return {
                 ...newState
             };
@@ -168,10 +185,15 @@ export default class App extends Component {
                     }
                 }
             };
+            this._saveToDos(newState.toDos);
             return {
                 ...newState
             };
         })
+    }
+
+    _saveToDos = (newToDos) => {
+        const saveToDos = AsyncStorage.setItem("toDos", JSON.stringify(newToDos));
     }
 
     _uuidv4 = () => {
